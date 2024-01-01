@@ -83,7 +83,7 @@ extend('minmax', {
   params: ['min', 'max']
 });
 ```
-*也可以用ES6语法解构赋值简化*
+*也可以用ES6语法解构赋值简化↓*
 ```
 extend('minmax', {
   validate(value, { min, max }) {
@@ -92,13 +92,14 @@ extend('minmax', {
   params: ['min', 'max']
 });
 ```
+*在rules属性中,给指定的规则后用`:`来按顺序传递params参数↓*
 ```
 <ValidationProvider rules="minmax:3,8" v-slot="{ errors }">
   <input v-model="value" type="text">
   <span>{{ errors[0] }}</span>
 </ValidationProvider>
 ```
-*在rules属性中,给指定的规则后用`:`来按顺序传递params参数*
+
 
 
 
