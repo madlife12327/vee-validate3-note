@@ -1,4 +1,4 @@
-# vee-validate 笔记 
+# vee-validate3 笔记 
 - [vee-validate官方文档](https://vee-validate.logaretm.com/v3/)
 ## Validation Provider
 - 实现原理:ValidationProvider 通过 **scoped-slots**(作用域插槽) 将包裹的`input`元素的校验状态注入到**slot props(插槽props)** 中，使`ValidationProvide`组件能够读取到`input`的校验状态.
