@@ -1,5 +1,5 @@
-# Vee-Validate笔记
-## 关于Validation Provider
+# Basics(基础知识)
+## Validation Provider
 - 实现原理:ValidationProvider 通过 **scoped-slots**(作用域插槽) 将校验产生的数据(比如校验不通过的错误信息)注入到**slot props(插槽props)** 中，使插槽模板组件`<ValidationProvider></ValidationProvider>`能够读取校验信息.
 
 - 1.注册一个`Validation Provider`组件:
@@ -33,7 +33,7 @@
   </ValidationProvider>
   ```
 ---
-## 添加校验规则
+## Registering the Validation Provider(添加校验规则)
 默认情况下,VeeValidate并不会安装任何校验规则以保证包体尽量的精简
 
 - 1.`extend`函数  
@@ -71,8 +71,8 @@
     });
     ```
 
-## 关于extend(name,options)中options中的配置项
-- 1.params:[],该数组可以指定params参数字段,使用该规则时可以在`rules`属性上通过` : ` 向`validate function`传递参数,比如`rules="max:3"`,提高规则的复用率
+## Rule Arguments(规则参数)
+- 1.params参数,该参数是一个数组,可以指定外部传的params参数字段,使用规则时可以在`rules`属性上通过` : ` 向`validate function`传递参数,比如`rules="max:3"`,提高规则的复用率
   - 定义规则:
     ```
     extend('minmax', {
@@ -107,7 +107,7 @@
     </ValidationProvider>
     ```
 
-## 错误信息message
+## Messages(消息)
 - VeeValidate 会给要验证的字段生成错误信息,`This field is invalid` 是所有规则默认返回的错误信息.
 - 1.修改规则的默认错误信息
   - 通过修改`validation function`返回值来修改默认错误信息
@@ -174,6 +174,75 @@
     ```
 - 5.关于mutiple message(多消息)
   - 你可能想知道为什么`errors`是一个数组而不是一个字符串,这是因为虽然每条规则都只会生成一条`message`(消息),但一个`input`也可能同时需要多条规则进行校验,vee-validate就会把所有`rules`产生的`message`都存到`errors`数组中
+
+# Available Rules(可用的规则)
+- 默认情况下，vee-validate并不会安装这些可用规则,需要自行安装
+- 1.Importing The Rules(按需引入)
+  - Validation rules(验证规则)都会在`vee-validate/dist/rules`文件中暴露
+    - 定义规则:
+      ```
+      import { extend } from 'vee-validate';
+      import { required, email } from 'vee-validate/dist/rules';
+      
+      // No message specified.
+      extend('email', email);
+      
+      // Override the default message.
+      extend('required', {
+        ...required,
+        message: 'This field is required'
+      });
+      ```
+    - 使用规则:
+      ```
+      <ValidationProvider name="email" rules="required|email" v-slot="{ errors }">
+        <input v-model="email" type="text">
+        <span>{{ errors[0] }}</span>
+      </ValidationProvider>
+      ```
+- 2.Installing All Rules(安装所有规则) **不推荐**
+  - 2.1 `import * as rules from 'vee-validate/dist/rules'`导入所有规则后,通过`Object.keys`遍历出所有规则名,最后用`extend`定义所有vee-validate提供的默认规则
+    ```
+    import { extend } from 'vee-validate';
+    import * as rules from 'vee-validate/dist/rules';
+
+    Object.keys(rules).forEach(rule => {
+      extend(rule, rules[rule]);
+    });
+    ```
+  - 2.2 另一种方法是导入vee-validate的完整包,其包含所有校验规则和英文消息':  
+      `import { ValidationProvider } from 'vee-validate/dist/vee-validate.full.esm';`
+
+- 3.Rules(规则)
+    - 各种可用规则的详情校验规则转至[Rules](https://vee-validate.logaretm.com/v3/guide/rules.html#rules)
+    - 这里仅介绍5个常用的可用规则:
+      - regex (验证字段必须匹配正则表达式)
+        ```
+        <ValidationProvider :rules="{ regex: /^[0-9]+$/ }" v-slot="{ errors }">
+          <input type="text" v-model="value">
+          <span>{{ errors[0] }}</span>
+        </ValidationProvider>
+        ```
+      - between (验证字段必须在一个区间内)
+        ```
+        <ValidationProvider rules="between:1,11" v-slot="{ errors }">
+          <input v-model="value" type="text">
+          <span>{{ errors[0] }}</span>
+        </ValidationProvider>
+        ```
+      - comfirmed (验证字段必须与确认字段相同)
+        ```
+        <ValidationProvider v-slot="{ errors }" vid="confirmation">
+          <input v-model="confirmation" type="text">
+          <span>{{ errors[0] }}</span>
+        </ValidationProvider>
+        
+        <ValidationProvider rules="confirmed:confirmation" v-slot="{ errors }">
+          <input v-model="value" type="text">
+          <span>{{ errors[0] }}</span>
+        </ValidationProvider>
+        ```
+        ![params]()
 
 
 
