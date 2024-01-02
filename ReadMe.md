@@ -242,11 +242,63 @@
           <span>{{ errors[0] }}</span>
         </ValidationProvider>
         ```
-        ![params]()
+        ![params](https://github.com/rjj1013404970/VeeValidateNote/blob/main/images/params.png)
+      - is (验证下的字段必须匹配给定的值,使用严格的相等)
+        ```
+        <ValidationProvider rules="is:hello" v-slot="{ errors }">
+          <input type="text" v-model="value">
+          <span>{{ errors[0] }}</span>
+        </ValidationProvider>
+        ```
+      - required (验证的字段必须非空.默认情况下,空字符串、空数组、`null`、`undefinded`都属于空值)
+        ```
+        <ValidationProvider rules="required" v-slot="{ errors }">
+          <input type="text" v-model="value">
+          <span>{{ errors[0] }}</span>
+        </ValidationProvider>
+        ```
+# Validation State(校验状态)
+- 在之前的示例中,我们只用过`slot props`中的`errors`来显示错误消息,但`errors`其实只是`Validation State`中的一部分.
+- Flags(标记)
+  - Validation Flags(校验标记) 是一个`boolean`值,用于获取校验字段的状态信息,以下是**vee-validate**官方文档罗列出所有可访问的`flags`:
+    []
 
 
 
 
+
+
+
+
+# Handling Forms(处理表单)
+- 到这里,我们已经学习了利用`ValidationProvider`去校验`input`元素中的字段是否通过某规则,但整体上我们并没有学习如何校验表单元素.
+- 对于表单元素`form` ,我们可以使用`ValidationObserver`组件去校验表单.
+- 我们可以把`ValidationProvider`组件当作一个单独的`field`字段,把`ValidationObserver`当作`form`表单,那么`ValidationObserver`就是每个子组件`ValidationProvider`的聚合器(aggregator)或者说领队(leader),这个聚合器会暴露所有字段的校验状态(Validation State)
+- 基本示例
+  - 假如你有一个基本的`form`表单,想在表单其他字段校验通过之前,禁止提交按钮,你可以使用`ValidationObserver`中暴露给`slot props`的`Validation State`中的`invalid`标记.
+    ```
+     <ValidationObserver v-slot="{ invalid }">
+        <form @submit.prevent="onSubmit">
+          <ValidationProvider name="E-mail" rules="required|email" v-slot="{ errors }">
+            <input v-model="email" type="email">
+            <span>{{ errors[0] }}</span>
+          </ValidationProvider>
+    
+          <ValidationProvider name="First Name" rules="required|alpha" v-slot="{ errors }">
+            <input v-model="firstName" type="text">
+            <span>{{ errors[0] }}</span>
+          </ValidationProvider>
+    
+          <ValidationProvider name="Last Name" rules="required|alpha" v-slot="{ errors }">
+            <input v-model="lastName" type="text">
+            <span>{{ errors[0] }}</span>
+          </ValidationProvider>
+    
+          <button type="submit" :disabled="invalid">Submit</button>
+        </form>
+      </ValidationObserver>
+    ```
+  
 
 
 
