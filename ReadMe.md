@@ -624,7 +624,7 @@
     ```
    - |Property|Type|Description|
      |:---------------:|:---------------:|:-------------------------:|
-     |name|string|null|要校验的字段名|
+     |name|string|要校验的字段名|
      |values|[x: string]: string|其他字段的值(用于跨域校验)|
      |names|{ { [k: string]: string }|其他字段名(用于跨域校验)|
      |bails|boolean|如果为true,校验将会在第一个校验失败的规则停下(用于多规则校验)|
