@@ -1,6 +1,6 @@
 # Basics(基础知识)
 ## Validation Provider
-- 实现原理:ValidationProvider 通过 **scoped-slots**(作用域插槽) 将校验产生的数据(比如校验不通过的错误信息)注入到**slot props(插槽props)** 中，使插槽模板组件`<ValidationProvider></ValidationProvider>`能够读取校验信息.
+- 实现原理:ValidationProvider 通过 **scoped-slots**(作用域插槽) 将包裹的`input`元素的校验状态注入到**slot props(插槽props)** 中，使`ValidationProvide`组件能够读取到`input`的校验状态.
 
 - 注册一个`Validation Provider`组件:
   - 组件内注册:
@@ -534,10 +534,119 @@
     ```
     *修改`en`环境下的`password`字段的`required`、`max`、`min`规则的校验消息*
 
+- Lazily importing locales(本地化资源懒加载)
+  - 利用*ES2020*的动态导入语法`import()`,实现资源的懒加载:
+    ```
+    import { localize } from 'vee-validate';
 
+    function loadLocale(code) {
+      return import(`vee-validate/dist/locale/${code}.json`).then(locale => {
+        localize(code, locale);
+      });
+    }
+    ```
+    *`import()`会返回一个promise对象,我们可以指定回调实现注册本地化资源的功能,当我们执行loadLocale()时才会加载本地化资源模块*
 
+# Interaction and UX(交互和用户体验)
+  - vee-validate对于何时进行校验有多种策略,最常见的有以下四种:
+    - Aggressive : 当用户在`input`框中一输入值就触发校验.
+    - Passive : 当表单提交时才触发校验.
+    - Lazy : 当`input`框失去焦点或者改变焦点时触发校验.
+    - Eager : 该策略结合了`Aggressive`和`Lazy`.当`input`框失去焦点时会触发第一次校验,第一次校验如果不通过后续校验就会表现出`Aggressive`策略,直到校验合法了才会表现出`Lazy`策略.
 
+  - Interaction Modes(交互模式)
+    - vee-validate 提供了多种常见的校验策略,我们称这些校验策略称之为`interaction modes`(交互模式).
+    - Setting The Interaction Mode Globally(设置全局交互模式)
+      ```
+      import { setInteractionMode } from 'vee-validate';
 
+      setInteractionMode('lazy');
+      ```
+    - Setting The Interaction Mode Per Component(设置单个组件的交互模式)
+      ```
+      <ValidationProvider mode="lazy" rules="required" v-slot="{ errors }">
+        <!-- Some input -->
+      </ValidationProvider>
+      ```
+      *使用mode属性将交互模式设置为`lazy`模式*
+**至此,你已经掌握了vee-validate的基本使用方法,如果你想了解更多关于`vee-validate`的知识,务必阅读以下对核心API的介绍以及查阅[vee-validate官方文档](https://vee-validate.logaretm.com/v3/)**
+
+# Core Validation API(核心校验API)
+## The Validate Function
+- 你可以从vee-validate中导入`validate`函数,用`ValidationProvider`相同的方式直接对字段进行校验:
+  ```
+  import { validate } from 'vee-validate';
+
+  validate('somval', 'required|min:3').then(result => {
+    if (result.valid) {
+      // Do something
+    }
+  });
+  ```
+  *validate函数继承Promise类,且该函数会返回一个关于校验结果的对象*
+- `validate`的函数签名大概如下:
+  ```
+  interface Result {
+    valid: boolean;
+    errors: string[];
+    failedRules: {
+      [x: string]: string;
+    };
+  }
+  
+  interface validate {
+    (value: any, rules: string | Record<string, any>,  options?: ValidationOptions): Result;
+  }
+  ```
+  - 可以看到`result`对象接口中有三个常用属性值:
+    - valid : 校验通过为`true`,否则为`falsa`
+    - errors : 校验失败时的错误消息列表
+    - failedRules : 校验失败对象,其中key为规则名,value为错误消息
+
+  - validation(rules,value,options?),该函数需要传入三个参数:
+    - value : 要校验的值
+    - rules : 校验规则
+    - options : ValidationOptions配置项
+
+- Validation Options(校验配置项)
+  - `ValidationOption`接口如下:
+    ```
+    interface ValidationOptions {
+      name?: string;
+      values?: { [k: string]: any };
+      names?: { [k: string]: string };
+      bails?: boolean;
+      skipOptional:? boolean;
+      isInitial?: boolean;
+      customMessages?: { [k: string]: string };
+    }
+    ```
+   - |Property|Type|Description|
+     |:---------------:|:---------------:|:-------------------------:|
+     |name|string|null|要校验的字段名|
+     |values|[x: string]: string|其他字段的值(用于跨域校验)|
+     |names|{ { [k: string]: string }|其他字段名(用于跨域校验)|
+     |bails|boolean|如果为true,校验将会在第一个校验失败的规则停下(用于多规则校验)|
+     |skipOptional|boolean|如果为true,当值为空时,会跳过可选字段的校验|
+     |isInitial|boolean|如果为true,会在第一次尝试校验时,跳过所有规则|
+     |customMessages|{ [k: string]: string }|自定义错误消息,key是规则名|
+
+- 如果你只需要简单的校验,可以直接使用validate函数:
+  ```
+  let password = 'my password';
+  let confirmation = '????';
+  
+  validate(password, 'required|confirmed:@confirmation', {
+    name: 'Password',
+    values: {
+      confirmation
+    }
+  }).then(result => {
+    if (result.valid) {
+      // Do something!
+    }
+  });
+  ```
 
 
 
